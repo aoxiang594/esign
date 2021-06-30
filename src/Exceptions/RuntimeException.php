@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Achais\ESign\Exceptions;
+namespace Aoxiang\ESign\Exceptions;
 
 
 class RuntimeException extends Exception

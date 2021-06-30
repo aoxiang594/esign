@@ -1,11 +1,11 @@
 <?php
 
 
-namespace Achais\ESign\Exceptions;
+namespace Aoxiang\ESign\Exceptions;
 
 /**
  * Class InvalidArgumentException
- * @package Achais\ESign\Exceptions
+ * @package Aoxiang\ESign\Exceptions
  */
 class InvalidArgumentException extends Exception
 {

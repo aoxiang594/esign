@@ -1,10 +1,10 @@
 <?php
 
-namespace Achais\ESign\File;
+namespace Aoxiang\ESign\File;
 
-use Achais\ESign\Core\AbstractAPI;
-use Achais\ESign\Exceptions\HttpException;
-use Achais\ESign\Support\Collection;
+use Aoxiang\ESign\Core\AbstractAPI;
+use Aoxiang\ESign\Exceptions\HttpException;
+use Aoxiang\ESign\Support\Collection;
 
 class File extends AbstractAPI
 {

@@ -1,10 +1,10 @@
 <?php
 
 
-namespace Achais\ESign\Foundation;
+namespace Aoxiang\ESign\Foundation;
 
 
-use Achais\ESign\Support\Collection;
+use Aoxiang\ESign\Support\Collection;
 
 class Config extends Collection
 {

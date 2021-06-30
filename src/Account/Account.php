@@ -1,10 +1,10 @@
 <?php
 
-namespace Achais\ESign\Account;
+namespace Aoxiang\ESign\Account;
 
-use Achais\ESign\Core\AbstractAPI;
-use Achais\ESign\Exceptions\HttpException;
-use Achais\ESign\Support\Collection;
+use Aoxiang\ESign\Core\AbstractAPI;
+use Aoxiang\ESign\Exceptions\HttpException;
+use Aoxiang\ESign\Support\Collection;
 
 class Account extends AbstractAPI
 {
