@@ -24,11 +24,14 @@ class AccessToken
 
     const API_TOKEN_GET = '/v1/oauth2/access_token';
 
-    public function __construct($appId, $secret, Cache $cache = null)
+    public function __construct($appId, $secret, Cache $cache = null, $forceRefresh = true)
     {
         $this->appId  = $appId;
         $this->secret = $secret;
         $this->cache  = $cache;
+        if( $forceRefresh ){
+            $this->getCache()->delete($this->getCacheKey());
+        }
     }
 
     /**
