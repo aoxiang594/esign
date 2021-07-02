@@ -233,11 +233,11 @@ class Http
         Log::debug('Client Request:', compact('url', 'method', 'options'));
 
         $options['handler'] = $this->getHandler();
-        $options['proxy']   = [
-            'http'  => '127.0.0.1:8888',
-            'https' => '127.0.0.1:8888',
-        ];
-        $options['verify']  = false;
+        // $options['proxy']   = [
+        //     'http'  => '127.0.0.1:8888',
+        //     'https' => '127.0.0.1:8888',
+        // ];
+        // $options['verify']  = false;
         $response           = $this->getClient()->request($method, $url, $options);
 
         Log::debug('API response:', [
