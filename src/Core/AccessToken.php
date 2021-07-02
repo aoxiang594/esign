@@ -26,24 +26,27 @@ class AccessToken
 
     public function __construct($appId, $secret, Cache $cache = null)
     {
-        $this->appId = $appId;
+        $this->appId  = $appId;
         $this->secret = $secret;
-        $this->cache = $cache;
+        $this->cache  = $cache;
     }
 
     /**
-     * @param bool $forceRefresh
+     * @param  bool  $forceRefresh
+     *
      * @return bool|mixed
      * @throws HttpException
      */
     public function getToken($forceRefresh = false)
     {
         $cacheKey = $this->getCacheKey();
-        $cached = $this->getCache()->fetch($cacheKey);
+//        $this->getCache()->delete($cacheKey);
+        $cached   = $this->getCache()->fetch($cacheKey);
 
-        if ($forceRefresh || empty($cached)) {
+        if( $forceRefresh || empty($cached) ){
             $token = $this->getTokenFromServer();
-            $this->getCache()->save($cacheKey, $token['data'][$this->tokenJsonKey], 60 * 100);
+            $this->getCache()->save($cacheKey, $token['data'][$this->tokenJsonKey], 60 * 60);
+
             return $token['data'][$this->tokenJsonKey];
         }
 
@@ -57,8 +60,8 @@ class AccessToken
     public function getTokenFromServer()
     {
         $params = [
-            'appId' => $this->appId,
-            'secret' => $this->secret,
+            'appId'     => $this->appId,
+            'secret'    => $this->secret,
             'grantType' => 'client_credentials',
         ];
 
@@ -66,8 +69,9 @@ class AccessToken
 
         $token = $http->parseJSON($http->get(self::API_TOKEN_GET, $params));
 
-        if (empty($token['data'][$this->tokenJsonKey])) {
-            throw new HttpException('Request AccessToken fail. response: ' . json_encode($token, JSON_UNESCAPED_UNICODE));
+        if( empty($token['data'][$this->tokenJsonKey]) ){
+            throw new HttpException('Request AccessToken fail. response: ' . json_encode($token,
+                    JSON_UNESCAPED_UNICODE));
         }
 
         return $token;
@@ -96,6 +100,7 @@ class AccessToken
     public function setHttp($http)
     {
         $this->http = $http;
+
         return $this;
     }
 
@@ -115,7 +120,7 @@ class AccessToken
 
     protected function getCacheKey()
     {
-        if (is_null($this->cacheKey)) {
+        if( is_null($this->cacheKey) ){
             return $this->prefix . $this->appId;
         }
 

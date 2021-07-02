@@ -26,10 +26,10 @@ abstract class AbstractAPI
      */
     protected $accessToken;
 
-    const GET = 'get';
-    const POST = 'post';
-    const JSON = 'json';
-    const PUT = 'put';
+    const GET    = 'get';
+    const POST   = 'post';
+    const JSON   = 'json';
+    const PUT    = 'put';
     const DELETE = 'delete';
 
     /**
@@ -40,7 +40,7 @@ abstract class AbstractAPI
     /**
      * Constructor.
      *
-     * @param AccessToken $accessToken
+     * @param  AccessToken  $accessToken
      */
     public function __construct(AccessToken $accessToken)
     {
@@ -54,11 +54,11 @@ abstract class AbstractAPI
      */
     public function getHttp()
     {
-        if (is_null($this->http)) {
+        if( is_null($this->http) ){
             $this->http = new Http();
         }
 
-        if (0 === count($this->http->getMiddlewares())) {
+        if( 0 === count($this->http->getMiddlewares()) ){
             $this->registerHttpMiddlewares();
         }
 
@@ -68,7 +68,7 @@ abstract class AbstractAPI
     /**
      * Set the http instance.
      *
-     * @param Http $http
+     * @param  Http  $http
      *
      * @return $this
      */
@@ -92,7 +92,7 @@ abstract class AbstractAPI
     /**
      * Set the request token.
      *
-     * @param AccessToken $accessToken
+     * @param  AccessToken  $accessToken
      *
      * @return $this
      */
@@ -104,7 +104,7 @@ abstract class AbstractAPI
     }
 
     /**
-     * @param int $retries
+     * @param  int  $retries
      */
     public static function maxRetries($retries)
     {
@@ -114,8 +114,9 @@ abstract class AbstractAPI
     /**
      * Parse JSON from response and check error.
      *
-     * @param $method
-     * @param array $args
+     * @param         $method
+     * @param  array  $args
+     *
      * @return Collection|null
      * @throws HttpException
      */
@@ -125,13 +126,18 @@ abstract class AbstractAPI
 
         $contents = $http->parseJSON(call_user_func_array([$http, $method], $args));
 
-        if (empty($contents)) {
+        if( empty($contents) ){
             return null;
         }
 
         $this->checkAndThrow($contents);
 
-        return (new Collection($contents))->get('data');
+        if( empty($contents['code']) ){
+            return (new Collection($contents))->get('data');
+        } else {
+            return $contents;
+        }
+
     }
 
     /**
@@ -156,7 +162,7 @@ abstract class AbstractAPI
     {
         return function (callable $handler) {
             return function (RequestInterface $request, array $options) use ($handler) {
-                if (!$this->accessToken) {
+                if( !$this->accessToken ){
                     return $handler($request, $options);
                 }
 
@@ -195,9 +201,10 @@ abstract class AbstractAPI
             ResponseInterface $response = null
         ) {
             // Limit the number of retries to 2
-            if ($retries <= self::$maxRetries && $response && $body = $response->getBody()) {
+            if( $retries <= self::$maxRetries && $response && $body = $response->getBody() ){
                 // Retry on server errors
-                if (false !== stripos($body, 'code') && (false !== stripos($body, '40001') || false !== stripos($body, '42001'))) {
+                if( false !== stripos($body, 'code') && (false !== stripos($body, '40001') || false !== stripos($body,
+                            '42001')) ){
                     $token = $this->accessToken->getToken(true);
 
                     $request = $request->withHeader('X-Tsign-Open-App-Id', $this->accessToken->getAppId());
@@ -217,17 +224,19 @@ abstract class AbstractAPI
     /**
      * Check the array data errors, and Throw exception when the contents contains error.
      *
-     * @param array $contents
+     * @param  array  $contents
+     *
      * @throws HttpException
      */
-    protected function checkAndThrow(array $contents)
+    protected function checkAndThrow(array $contents, $exception = false)
     {
-        if (isset($contents['code']) && 0 !== $contents['code']) {
-            if (empty($contents['message'])) {
+        if( isset($contents['code']) && 0 !== $contents['code'] ){
+            if( empty($contents['message']) ){
                 $contents['message'] = 'Unknown';
             }
-
-            throw new HttpException($contents['message'], $contents['code']);
+            if( $exception ){
+                throw new HttpException($contents['message'], $contents['code']);
+            }
         }
     }
 }

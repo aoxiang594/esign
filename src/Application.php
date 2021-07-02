@@ -18,9 +18,9 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Class Application
  *
- * @property \Aoxiang\ESign\Core\AccessToken $access_token
- * @property \Aoxiang\ESign\Account\Account $account
- * @property \Aoxiang\ESign\File\File $file
+ * @property \Aoxiang\ESign\Core\AccessToken  $access_token
+ * @property \Aoxiang\ESign\Account\Account   $account
+ * @property \Aoxiang\ESign\File\File         $file
  * @property \Aoxiang\ESign\SignFlow\SignFlow $signflow
  *
  * @package Aoxiang\ESign
@@ -46,7 +46,7 @@ class Application extends Container
         $this->initializeLogger();
 
         $production = $this['config']->get('production', true);
-        if ($production) {
+        if( $production ){
             $baseUri = 'https://openapi.esign.cn';
         } else {
             $baseUri = 'https://smlopenapi.esign.cn';
@@ -63,7 +63,10 @@ class Application extends Container
     {
         $config = new Foundation\Config($config);
 
-        $keys = ['app_id', 'secret', 'open_platform.app_id', 'open_platform.secret', 'mini_program.app_id', 'mini_program.secret'];
+        $keys = [
+            'app_id', 'secret', 'open_platform.app_id', 'open_platform.secret', 'mini_program.app_id',
+            'mini_program.secret',
+        ];
         foreach ($keys as $key) {
             !$config->has($key) || $config[$key] = '***' . substr($config[$key], -5);
         }
@@ -74,6 +77,7 @@ class Application extends Container
     public function addProvider($provider)
     {
         array_push($this->providers, $provider);
+
         return $this;
     }
 
@@ -114,14 +118,18 @@ class Application extends Container
             return Request::createFromGlobals();
         };
 
-        if (!empty($this['config']['cache']) && $this['config']['cache'] instanceof CacheInterface) {
+        if( !empty($this['config']['cache']) && $this['config']['cache'] instanceof CacheInterface ){
             $this['cache'] = $this['config']['cache'];
         } else {
             $this['cache'] = function () {
                 return new FilesystemCache(sys_get_temp_dir());
             };
         }
-
+        $s = new AccessToken(
+            $this['config']['app_id'],
+            $this['config']['secret'],
+            $this['cache']
+        );
         $this['access_token'] = function () {
             return new AccessToken(
                 $this['config']['app_id'],
@@ -129,21 +137,28 @@ class Application extends Container
                 $this['cache']
             );
         };
+//        $accessToken = new AccessToken(
+//            $this['config']['app_id'],
+//            $this['config']['secret'],
+//            $this['cache']
+//        );
+//        $accessToken->getToken(true);
+
     }
 
     private function initializeLogger()
     {
-        if (Log::hasLogger()) {
+        if( Log::hasLogger() ){
             return;
         }
 
         $logger = new Logger('esign');
 
-        if (!$this['config']['debug'] || defined('PHPUNIT_RUNNING')) {
+        if( !$this['config']['debug'] || defined('PHPUNIT_RUNNING') ){
             $logger->pushHandler(new NullHandler());
-        } elseif ($this['config']['log.handler'] instanceof HandlerInterface) {
+        } else if( $this['config']['log.handler'] instanceof HandlerInterface ){
             $logger->pushHandler($this['config']['log.handler']);
-        } elseif ($logFile = $this['config']['log.file']) {
+        } else if( $logFile = $this['config']['log.file'] ){
             try {
                 $logger->pushHandler(new StreamHandler(
                         $logFile,
@@ -161,12 +176,13 @@ class Application extends Container
     /**
      * @param $method
      * @param $args
+     *
      * @return mixed
      * @throws \Exception
      */
     public function __call($method, $args)
     {
-        if (is_callable([$this['fundamental.api'], $method])) {
+        if( is_callable([$this['fundamental.api'], $method]) ){
             return call_user_func_array([$this['fundamental.api'], $method], $args);
         }
 

@@ -50,7 +50,7 @@ class Http
     /**
      * Set guzzle default settings.
      *
-     * @param array $defaults
+     * @param  array  $defaults
      */
     public static function setDefaultOptions($defaults = [])
     {
@@ -70,8 +70,8 @@ class Http
     /**
      * GET request.
      *
-     * @param string $url
-     * @param array $options
+     * @param  string  $url
+     * @param  array   $options
      *
      * @return ResponseInterface
      *
@@ -85,8 +85,8 @@ class Http
     /**
      * POST request.
      *
-     * @param string $url
-     * @param array|string $options
+     * @param  string        $url
+     * @param  array|string  $options
      *
      * @return ResponseInterface
      *
@@ -116,10 +116,10 @@ class Http
     /**
      * JSON request.
      *
-     * @param string $url
-     * @param string|array $options
-     * @param array $queries
-     * @param int $encodeOption
+     * @param  string        $url
+     * @param  string|array  $options
+     * @param  array         $queries
+     * @param  int           $encodeOption
      *
      * @return ResponseInterface
      *
@@ -129,15 +129,16 @@ class Http
     {
         is_array($options) && $options = json_encode($options, $encodeOption);
 
-        return $this->request($url, 'POST', ['query' => $queries, 'body' => $options, 'headers' => ['content-type' => 'application/json']]);
+        return $this->request($url, 'POST',
+            ['query' => $queries, 'body' => $options, 'headers' => ['content-type' => 'application/json']]);
     }
 
     /**
      * Upload file.
      *
-     * @param string $url
-     * @param array $files
-     * @param array $form
+     * @param  string  $url
+     * @param  array   $files
+     * @param  array   $form
      *
      * @return ResponseInterface
      *
@@ -149,7 +150,7 @@ class Http
 
         foreach ($files as $name => $path) {
             $multipart[] = [
-                'name' => $name,
+                'name'     => $name,
                 'contents' => fopen($path, 'r'),
             ];
         }
@@ -164,7 +165,7 @@ class Http
     /**
      * Set GuzzleHttp\Client.
      *
-     * @param \GuzzleHttp\Client $client
+     * @param  \GuzzleHttp\Client  $client
      *
      * @return Http
      */
@@ -182,7 +183,7 @@ class Http
      */
     public function getClient()
     {
-        if (!($this->client instanceof HttpClient)) {
+        if( !($this->client instanceof HttpClient) ){
             $this->client = new HttpClient();
         }
 
@@ -192,7 +193,7 @@ class Http
     /**
      * Add a middleware.
      *
-     * @param callable $middleware
+     * @param  callable  $middleware
      *
      * @return $this
      */
@@ -216,9 +217,9 @@ class Http
     /**
      * Make a request.
      *
-     * @param string $url
-     * @param string $method
-     * @param array $options
+     * @param  string  $url
+     * @param  string  $method
+     * @param  array   $options
      *
      * @return ResponseInterface
      *
@@ -232,21 +233,25 @@ class Http
         Log::debug('Client Request:', compact('url', 'method', 'options'));
 
         $options['handler'] = $this->getHandler();
-
-        $response = $this->getClient()->request($method, $url, $options);
+        $options['proxy']   = [
+            'http'  => '127.0.0.1:8888',
+            'https' => '127.0.0.1:8888',
+        ];
+        $options['verify']  = false;
+        $response           = $this->getClient()->request($method, $url, $options);
 
         Log::debug('API response:', [
-            'Status' => $response->getStatusCode(),
-            'Reason' => $response->getReasonPhrase(),
+            'Status'  => $response->getStatusCode(),
+            'Reason'  => $response->getReasonPhrase(),
             'Headers' => $response->getHeaders(),
-            'Body' => strval($response->getBody()),
+            'Body'    => strval($response->getBody()),
         ]);
 
         return $response;
     }
 
     /**
-     * @param \Psr\Http\Message\ResponseInterface|string $body
+     * @param  \Psr\Http\Message\ResponseInterface|string  $body
      *
      * @return mixed
      *
@@ -254,11 +259,11 @@ class Http
      */
     public function parseJSON($body)
     {
-        if ($body instanceof ResponseInterface) {
+        if( $body instanceof ResponseInterface ){
             $body = mb_convert_encoding($body->getBody(), 'UTF-8');
         }
 
-        if (empty($body)) {
+        if( empty($body) ){
             return false;
         }
 
@@ -266,7 +271,7 @@ class Http
 
         Log::debug('API response decoded:', compact('contents'));
 
-        if (JSON_ERROR_NONE !== json_last_error()) {
+        if( JSON_ERROR_NONE !== json_last_error() ){
             throw new HttpException('Failed to parse JSON: ' . json_last_error_msg());
         }
 
@@ -286,7 +291,7 @@ class Http
             $stack->push($middleware);
         }
 
-        if (isset(static::$defaults['handler']) && is_callable(static::$defaults['handler'])) {
+        if( isset(static::$defaults['handler']) && is_callable(static::$defaults['handler']) ){
             $stack->push(static::$defaults['handler'], self::USER_DEFINED_HANDLER);
         }
 
